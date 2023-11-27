@@ -26,19 +26,19 @@ function ContributionsHandler(db) {
     };
 
     this.handleContributionsUpdate = (req, res, next) => {
-
+        'use strict';
         /*jslint evil: true */
         // Insecure use of eval() to parse inputs
-        const preTax = eval(req.body.preTax);
-        const afterTax = eval(req.body.afterTax);
-        const roth = eval(req.body.roth);
+        // const preTax = eval(req.body.preTax);
+        // const afterTax = eval(req.body.afterTax);
+        // const roth = eval(req.body.roth);
 
-        /*
+
         //Fix for A1 -1 SSJS Injection attacks - uses alternate method to eval
         const preTax = parseInt(req.body.preTax);
         const afterTax = parseInt(req.body.afterTax);
         const roth = parseInt(req.body.roth);
-        */
+
         const {
             userId
         } = req.session;

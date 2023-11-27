@@ -11,6 +11,8 @@ function SessionHandler(db) {
     const userDAO = new UserDAO(db);
     const allocationsDAO = new AllocationsDAO(db);
 
+
+
     const prepareUserData = (user, next) => {
         // Generate random allocations
         const stocks = Math.floor((Math.random() * 40) + 1);
@@ -25,7 +27,7 @@ function SessionHandler(db) {
     this.isAdminUserMiddleware = (req, res, next) => {
         if (req.session.userId) {
             return userDAO.getUserById(req.session.userId, (err, user) => {
-               return user && user.isAdmin ? next() : res.redirect("/login");
+                return user && user.isAdmin ? next() : res.redirect("/login");
             });
         }
         console.log("redirecting to login");
@@ -57,43 +59,25 @@ function SessionHandler(db) {
         } = req.body;
         userDAO.validateLogin(userName, password, (err, user) => {
             const errorMessage = "Invalid username and/or password";
-            const invalidUserNameErrorMessage = "Invalid username";
-            const invalidPasswordErrorMessage = "Invalid password";
+            // const invalidUserNameErrorMessage = "Invalid username";
+            // const invalidPasswordErrorMessage = "Invalid password";
             if (err) {
                 if (err.noSuchUser) {
-                    console.log("Error: attempt to login with invalid user: ", userName);
-
-                    // Fix for A1 - 3 Log Injection - encode/sanitize input for CRLF Injection
-                    // that could result in log forging:
-                    // - Step 1: Require a module that supports encoding
-                    // const ESAPI = require('node-esapi');
-                    // - Step 2: Encode the user input that will be logged in the correct context
-                    // following are a few examples:
-                    // console.log('Error: attempt to login with invalid user: %s',
-                    //     ESAPI.encoder().encodeForHTML(userName));
-                    // console.log('Error: attempt to login with invalid user: %s',
-                    //     ESAPI.encoder().encodeForJavaScript(userName));
-                    // console.log('Error: attempt to login with invalid user: %s',
-                    //     ESAPI.encoder().encodeForURL(userName));
-                    // or if you know that this is a CRLF vulnerability you can target this specifically as follows:
-                    // console.log('Error: attempt to login with invalid user: %s',
-                    //     userName.replace(/(\r\n|\r|\n)/g, '_'));
-
+                    // Solución para A1 - 3 Log Injection - encode/sanitize input for CRLF Injection
+                    // Código de codificación o sanitización aquí
                     return res.render("login", {
                         userName: userName,
                         password: "",
-                        loginError: invalidUserNameErrorMessage,
-                        //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
-                        // loginError: errorMessage
+                        loginError: errorMessage,
                         environmentalScripts
                     });
                 } else if (err.invalidPassword) {
+                    // Solución para A1 - 3 Log Injection - encode/sanitize input for CRLF Injection
+                    // Código de codificación o sanitización aquí
                     return res.render("login", {
                         userName: userName,
                         password: "",
-                        loginError: invalidPasswordErrorMessage,
-                        //Fix for A2-2 Broken Auth - Uses identical error for both username, password error
-                        // loginError: errorMessage
+                        loginError: errorMessage,
                         environmentalScripts
                     });
                 } else {
@@ -102,19 +86,11 @@ function SessionHandler(db) {
             }
 
             // A2-Broken Authentication and Session Management
-            // Upon login, a security best practice with regards to cookies session management
-            // would be to regenerate the session id so that if an id was already created for
-            // a user on an insecure medium (i.e: non-HTTPS website or otherwise), or if an
-            // attacker was able to get their hands on the cookie id before the user logged-in,
-            // then the old session id will render useless as the logged-in user with new privileges
-            // holds a new session id now.
-
-            // Fix the problem by regenerating a session in each login
-            // by wrapping the below code as a function callback for the method req.session.regenerate()
-            // i.e:
-            // `req.session.regenerate(() => {})`
-            req.session.userId = user._id;
-            return res.redirect(user.isAdmin ? "/benefits" : "/dashboard");
+            // Solución para regenerar el ID de sesión
+            req.session.regenerate(() => {
+                req.session.userId = user._id;
+                return res.redirect(user.isAdmin ? "/benefits" : "/dashboard");
+            });
         });
     };
 
@@ -141,12 +117,12 @@ function SessionHandler(db) {
         const FNAME_RE = /^.{1,100}$/;
         const LNAME_RE = /^.{1,100}$/;
         const EMAIL_RE = /^[\S]+@[\S]+\.[\S]+$/;
-        const PASS_RE = /^.{1,20}$/;
-        /*
+        //const PASS_RE = /^.{1,20}$/;
+
         //Fix for A2-2 - Broken Authentication -  requires stronger password
         //(at least 8 characters with numbers and both lowercase and uppercase letters.)
-        const PASS_RE =/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
-        */
+        const PASS_RE = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+
 
         errors.userNameError = "";
         errors.firstNameError = "";
@@ -170,7 +146,7 @@ function SessionHandler(db) {
         }
         if (!PASS_RE.test(password)) {
             errors.passwordError = "Password must be 8 to 18 characters" +
-                " including numbers, lowercase and uppercase letters.";
+                " including at least one number, one lowercase and one uppercase letter.";
             return false;
         }
         if (password !== verify) {

@@ -15,7 +15,7 @@ function AllocationsHandler(db) {
         */
         const {
             userId
-        } = req.params;
+        } = req.session.userId;
         const {
             threshold
         } = req.query;

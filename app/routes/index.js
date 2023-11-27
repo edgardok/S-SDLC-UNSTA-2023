@@ -52,12 +52,12 @@ const index = (app, db) => {
     app.post("/contributions", isLoggedIn, contributionsHandler.handleContributionsUpdate);
 
     // Benefits Page
-    app.get("/benefits", isLoggedIn, benefitsHandler.displayBenefits);
+    /*app.get("/benefits", isLoggedIn, benefitsHandler.displayBenefits);
     app.post("/benefits", isLoggedIn, benefitsHandler.updateBenefits);
-    /* Fix for A7 - checks user role to implement  Function Level Access Control
-     app.get("/benefits", isLoggedIn, isAdmin, benefitsHandler.displayBenefits);
-     app.post("/benefits", isLoggedIn, isAdmin, benefitsHandler.updateBenefits);
-     */
+    Fix for A7 - checks user role to implement  Function Level Access Control */
+    app.get("/benefits", isLoggedIn, isAdmin, benefitsHandler.displayBenefits);
+    app.post("/benefits", isLoggedIn, isAdmin, benefitsHandler.updateBenefits);
+
 
     // Allocations Page
     app.get("/allocations/:userId", isLoggedIn, allocationsHandler.displayAllocations);
@@ -68,9 +68,28 @@ const index = (app, db) => {
 
     // Handle redirect for learning resources link
     app.get("/learn", isLoggedIn, (req, res) => {
-        // Insecure way to handle redirects by taking redirect url from query string
-        return res.redirect(req.query.url);
+        const { url } = req.query;
+
+        // Validar si la URL es una URL válida y permitida antes de redirigir
+        if (url && isValidURL(url)) {
+            return res.redirect(url);
+        } else {
+            // Enviar a una URL predeterminada si la URL no es válida o está ausente
+            return res.redirect("/default"); // Cambia "/default" a la URL deseada
+        }
     });
+
+    // Función para validar una URL
+    function isValidURL(url) {
+        // Implementa lógica para validar la URL aquí
+        // Utiliza expresiones regulares, librerías de validación de URL, etc.
+        // para asegurarte de que la URL sea segura y válida
+
+        // Ejemplo simple de validación usando expresión regular
+        const urlRegex = /^(http|https):\/\/[^ "]+$/;
+        return urlRegex.test(url);
+    }
+
 
     // Research Page
     app.get("/research", isLoggedIn, researchHandler.displayResearch);
